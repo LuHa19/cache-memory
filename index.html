@@ -50,7 +50,11 @@
 <body>
 
 <h1>How CPU Cache Works</h1>
-<p>CPU needs data to work. Larger Cache size means fewer slow trips to RAM!</p>
+<p>
+    The CPU needs to fetch instructions and data so it can decode and execute them.<br /><br />
+    The CPU checks the cache for the data. If it is not there, it fetches them from the RAM.<br /><br />
+    On the way back from the RAM, a copy of the data and instructions is stored in the cache.
+</p>
 
 <div id="controls">
     <button id="req1">Request Data (A)</button>
@@ -218,7 +222,7 @@
             await animatePacket(cacheCenterX, cpuX, centerY, dataLabel, '#4CAF50');
             description.innerText = `Data ${dataLabel} delivered from Cache. Very fast!`;
         } else {
-            description.innerText = `CACHE MISS! Not in Cache Memory. Must go to RAM...`;
+            description.innerText = `Not in Cache! Must go to RAM...`;
             drawStatic();
             drawHitMiss(false);
             
