@@ -222,3 +222,53 @@
         const isInCache = cache.includes(dataLabel);
         drawStatic();
         drawHitMiss(isInCache);
+        await new Promise(r => setTimeout(r, 1000)); // Pause to show HIT/MISS
+
+        if (isInCache) {
+            // CACHE HIT PATH
+            description.innerText = `CACHE HIT! Data ${dataLabel} found in backpack. Delivery is instant.`;
+            await animatePacket(cacheCenterX, cpuX, centerY, dataLabel, '#4CAF50');
+            description.innerText = `Data ${dataLabel} delivered from Cache. Very fast!`;
+        } else {
+            // CACHE MISS PATH
+            description.innerText = `CACHE MISS! Not in backpack. Must walk to Locker (RAM)...`;
+            drawStatic();
+            drawHitMiss(false);
+            
+            // 3. Send Request to RAM
+            await animatePacket(cacheCenterX, ramCenterX, centerY, '?', '#9e9e9e');
+            
+            // 4. Retrieve from RAM
+            description.innerText = `Retrieving Data ${dataLabel} from RAM (slow)...`;
+            await animatePacket(ramCenterX, cacheCenterX, centerY, dataLabel, '#F44336');
+
+            // 5. Update Cache (Copy data into backpack)
+            description.innerText = `Copying Data ${dataLabel} into Cache for next time.`;
+            if (cache.length >= 2) cache.shift(); // Simple replacement policy: remove oldest
+            cache.push(dataLabel);
+            drawStatic();
+            await new Promise(r => setTimeout(r, 800));
+
+            // 6. Deliver to CPU
+            await animatePacket(cacheCenterX, cpuX, centerY, dataLabel, '#4CAF50');
+            description.innerText = `Data ${dataLabel} delivered from RAM and stored in Cache.`;
+        }
+
+        drawStatic();
+        currentAnimation = null;
+        disableButtons(false);
+    }
+
+    buttons.req1.addEventListener('click', () => handleRequest('A'));
+    buttons.req2.addEventListener('click', () => handleRequest('B'));
+    buttons.reset.addEventListener('click', () => {
+        cache = [];
+        description.innerText = "Simulation reset. Click a button to request data.";
+        drawStatic();
+    });
+
+    // Initial setup
+    drawStatic();
+</script>
+</body>
+</html>
