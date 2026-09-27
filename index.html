@@ -39,9 +39,6 @@
             height: 30px;
             margin-top: 10px;
         }
-        #canvasContainer {
-            position: relative;
-        }
         canvas { 
             background-color: #2b2b36; 
             border: 2px solid #555; 
@@ -58,12 +55,10 @@
 <div id="controls">
     <button id="req1">Request Data (A)</button>
     <button id="req2">Request Data (B)</button>
-    <button id="resetBtn">Reset</button>
+    <button id="resetBtn">↻ Reset</button>
 </div>
 
-<div id="canvasContainer">
-    <canvas id="cacheCanvas" width="800" height="400"></canvas>
-</div>
+<canvas id="cacheCanvas" width="800" height="400"></canvas>
 
 <div id="description">Click a button to start requesting data.</div>
 
@@ -72,82 +67,23 @@
     const ctx = canvas.getContext('2d');
     const description = document.getElementById('description');
 
-    const buttons = {
-        req1: document.getElementById('req1'),
-        req2: document.getElementById('req2'),
-        reset: document.getElementById('resetBtn')
-    };
+    const btnA = document.getElementById('req1');
+    const btnB = document.getElementById('req2');
+    const btnReset = document.getElementById('resetBtn');
 
-    let cache = []; // Stores strings 'A' or 'B'
-    let currentAnimation = null;
+    let cache = []; 
+    let isAnimating = false;
 
-    // Component Positions
     const positions = {
         cpu: { x: 100, y: 200, r: 60 },
         cache: { x: 350, y: 200, w: 120, h: 160 },
         ram: { x: 650, y: 200, w: 150, h: 250 }
     };
 
-    function disableButtons(disabled) {
-        buttons.req1.disabled = disabled;
-        buttons.req2.disabled = disabled;
-    }
-
-    function drawStatic() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Draw labels
-        ctx.fillStyle = '#aaa';
-        ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText("CPU (Very Fast)", positions.cpu.x, positions.cpu.y - positions.cpu.r - 10);
-        ctx.fillText("CACHE (Fast, Small)", positions.cache.x + positions.cache.w/2, positions.cache.y - positions.cache.h/2 - 10);
-        ctx.fillText("RAM (Slow, Large)", positions.ram.x + positions.ram.w/2, positions.ram.y - positions.ram.h/2 - 10);
-
-        // Draw CPU
-        ctx.beginPath();
-        ctx.arc(positions.cpu.x, positions.cpu.y, positions.cpu.r, 0, Math.PI * 2);
-        ctx.fillStyle = '#424242';
-        ctx.fill();
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 4;
-        ctx.stroke();
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 24px Arial';
-        ctx.fillText("CPU", positions.cpu.x, positions.cpu.y);
-
-        // Draw Cache
-        ctx.fillStyle = '#333';
-        ctx.fillRect(positions.cache.x, positions.cache.y - positions.cache.h/2, positions.cache.w, positions.cache.h);
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(positions.cache.x, positions.cache.y - positions.cache.h/2, positions.cache.w, positions.cache.h);
-        
-        // Draw Cache Contents (Backpack blocks)
-        ctx.font = 'bold 20px Arial';
-        ctx.fillStyle = '#fff';
-        ctx.fillText("Backpack", positions.cache.x + positions.cache.w/2, positions.cache.y - 50);
-        
-        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-        ctx.strokeRect(positions.cache.x + 20, positions.cache.y - 30, 80, 40); // Slot 1
-        ctx.strokeRect(positions.cache.x + 20, positions.cache.y + 20, 80, 40); // Slot 2
-
-        if (cache[0]) drawDataBlock(cache[0], positions.cache.x + 60, positions.cache.y - 10);
-        if (cache[1]) drawDataBlock(cache[1], positions.cache.x + 60, positions.cache.y + 40);
-
-        // Draw RAM
-        ctx.fillStyle = '#212121';
-        ctx.fillRect(positions.ram.x, positions.ram.y - positions.ram.h/2, positions.ram.w, positions.ram.h);
-        ctx.strokeStyle = '#9e9e9e';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(positions.ram.x, positions.ram.y - positions.ram.h/2, positions.ram.w, positions.ram.h);
-        ctx.fillStyle = '#9e9e9e';
-        ctx.font = 'bold 20px Arial';
-        ctx.fillText("Locker", positions.ram.x + positions.ram.w/2, positions.ram.y - positions.ram.h/2 + 30);
-        
-        // Static RAM contents
-        drawDataBlock('A', positions.ram.x + positions.ram.w/2, positions.ram.y - 20);
-        drawDataBlock('B', positions.ram.x + positions.ram.w/2, positions.ram.y + 40);
+    function setButtons(disabled) {
+        btnA.disabled = disabled;
+        btnB.disabled = disabled;
+        btnReset.disabled = disabled;
     }
 
     function drawDataBlock(label, x, y, color = '#2196F3') {
@@ -164,23 +100,76 @@
         ctx.fillText(label, x, y);
     }
 
-    async function animatePacket(fromX, toX, y, label, color = '#FFC107') {
+    function drawStatic() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Labels
+        ctx.fillStyle = '#aaa';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText("CPU (Very Fast)", positions.cpu.x, positions.cpu.y - positions.cpu.r - 10);
+        ctx.fillText("CACHE (Fast, Small)", positions.cache.x + positions.cache.w/2, positions.cache.y - positions.cache.h/2 - 10);
+        ctx.fillText("RAM (Slow, Large)", positions.ram.x + positions.ram.w/2, positions.ram.y - positions.ram.h/2 - 10);
+
+        // CPU
+        ctx.beginPath();
+        ctx.arc(positions.cpu.x, positions.cpu.y, positions.cpu.r, 0, Math.PI * 2);
+        ctx.fillStyle = '#424242';
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 24px Arial';
+        ctx.fillText("CPU", positions.cpu.x, positions.cpu.y);
+
+        // Cache
+        ctx.fillStyle = '#333';
+        ctx.fillRect(positions.cache.x, positions.cache.y - positions.cache.h/2, positions.cache.w, positions.cache.h);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(positions.cache.x, positions.cache.y - positions.cache.h/2, positions.cache.w, positions.cache.h);
+        
+        ctx.font = 'bold 20px Arial';
+        ctx.fillStyle = '#fff';
+        ctx.fillText("Backpack", positions.cache.x + positions.cache.w/2, positions.cache.y - 50);
+        
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.strokeRect(positions.cache.x + 20, positions.cache.y - 30, 80, 40); 
+        ctx.strokeRect(positions.cache.x + 20, positions.cache.y + 20, 80, 40); 
+
+        if (cache[0]) drawDataBlock(cache[0], positions.cache.x + 60, positions.cache.y - 10);
+        if (cache[1]) drawDataBlock(cache[1], positions.cache.x + 60, positions.cache.y + 40);
+
+        // RAM
+        ctx.fillStyle = '#212121';
+        ctx.fillRect(positions.ram.x, positions.ram.y - positions.ram.h/2, positions.ram.w, positions.ram.h);
+        ctx.strokeStyle = '#9e9e9e';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(positions.ram.x, positions.ram.y - positions.ram.h/2, positions.ram.w, positions.ram.h);
+        ctx.fillStyle = '#9e9e9e';
+        ctx.font = 'bold 20px Arial';
+        ctx.fillText("Locker", positions.ram.x + positions.ram.w/2, positions.ram.y - positions.ram.h/2 + 30);
+        
+        drawDataBlock('A', positions.ram.x + positions.ram.w/2, positions.ram.y - 20);
+        drawDataBlock('B', positions.ram.x + positions.ram.w/2, positions.ram.y + 40);
+    }
+
+    function animatePacket(fromX, toX, y, label, color) {
         return new Promise(resolve => {
             let progress = 0;
-            const speed = 0.02; // Slower for observation
+            const speed = 0.02; 
 
             function step() {
-                drawStatic(); // Redraw background components
-                
+                drawStatic(); 
                 const currentX = fromX + (toX - fromX) * progress;
-                
-                // Draw packet (data block)
                 drawDataBlock(label, currentX, y, color);
 
                 progress += speed;
                 if (progress <= 1) {
                     requestAnimationFrame(step);
                 } else {
+                    drawStatic();
                     resolve();
                 }
             }
@@ -194,19 +183,16 @@
         if (isHit) {
             ctx.fillStyle = '#4CAF50';
             ctx.fillText("CACHE HIT!", canvas.width / 2, 70);
-            ctx.fillStyle = 'rgba(76, 175, 80, 0.1)';
         } else {
             ctx.fillStyle = '#F44336';
             ctx.fillText("CACHE MISS!", canvas.width / 2, 70);
-            ctx.fillStyle = 'rgba(244, 67, 54, 0.1)';
         }
-        ctx.fillRect(positions.cache.x - 10, positions.cache.y - positions.cache.h/2 - 10, positions.cache.w + 20, positions.cache.h + 20);
     }
 
     async function handleRequest(dataLabel) {
-        if (currentAnimation) return;
-        currentAnimation = true;
-        disableButtons(true);
+        if (isAnimating) return;
+        isAnimating = true;
+        setButtons(true);
         description.innerText = `CPU requesting Data ${dataLabel}...`;
         drawStatic();
 
@@ -215,59 +201,53 @@
         const ramCenterX = positions.ram.x + positions.ram.w / 2;
         const centerY = positions.cpu.y;
 
-        // 1. Send Request to Cache
+        // 1. Request to Cache
         await animatePacket(cpuX, cacheCenterX, centerY, '?', '#9e9e9e');
         
-        // 2. Check Cache
         const isInCache = cache.includes(dataLabel);
         drawStatic();
         drawHitMiss(isInCache);
-        await new Promise(r => setTimeout(r, 1000)); // Pause to show HIT/MISS
+        
+        // Brief pause to read "Hit" or "Miss"
+        await new Promise(r => setTimeout(r, 1200)); 
 
         if (isInCache) {
-            // CACHE HIT PATH
             description.innerText = `CACHE HIT! Data ${dataLabel} found in backpack. Delivery is instant.`;
             await animatePacket(cacheCenterX, cpuX, centerY, dataLabel, '#4CAF50');
             description.innerText = `Data ${dataLabel} delivered from Cache. Very fast!`;
         } else {
-            // CACHE MISS PATH
             description.innerText = `CACHE MISS! Not in backpack. Must walk to Locker (RAM)...`;
             drawStatic();
             drawHitMiss(false);
             
-            // 3. Send Request to RAM
             await animatePacket(cacheCenterX, ramCenterX, centerY, '?', '#9e9e9e');
             
-            // 4. Retrieve from RAM
             description.innerText = `Retrieving Data ${dataLabel} from RAM (slow)...`;
             await animatePacket(ramCenterX, cacheCenterX, centerY, dataLabel, '#F44336');
 
-            // 5. Update Cache (Copy data into backpack)
             description.innerText = `Copying Data ${dataLabel} into Cache for next time.`;
-            if (cache.length >= 2) cache.shift(); // Simple replacement policy: remove oldest
+            if (cache.length >= 2) cache.shift(); 
             cache.push(dataLabel);
             drawStatic();
             await new Promise(r => setTimeout(r, 800));
 
-            // 6. Deliver to CPU
             await animatePacket(cacheCenterX, cpuX, centerY, dataLabel, '#4CAF50');
             description.innerText = `Data ${dataLabel} delivered from RAM and stored in Cache.`;
         }
 
-        drawStatic();
-        currentAnimation = null;
-        disableButtons(false);
+        isAnimating = false;
+        setButtons(false);
     }
 
-    buttons.req1.addEventListener('click', () => handleRequest('A'));
-    buttons.req2.addEventListener('click', () => handleRequest('B'));
-    buttons.reset.addEventListener('click', () => {
+    btnA.addEventListener('click', () => handleRequest('A'));
+    btnB.addEventListener('click', () => handleRequest('B'));
+    btnReset.addEventListener('click', () => {
         cache = [];
         description.innerText = "Simulation reset. Click a button to request data.";
         drawStatic();
     });
 
-    // Initial setup
+    // Start
     drawStatic();
 </script>
 </body>
