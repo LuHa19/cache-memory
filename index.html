@@ -17,7 +17,7 @@
             height: 100vh; 
         }
         h1 { margin-bottom: 5px; }
-        p { color: #aaa; margin-bottom: 20px; text-align: center; max-width: 800px; font-size: 18px; }
+        p { color: #aaa; margin-bottom: 20px; text-align: center; max-width: 600px; font-size: 18px; }
         #controls { margin-bottom: 15px; display: flex; gap: 10px;}
         button { 
             background-color: #4CAF50; 
@@ -74,10 +74,11 @@
     let cache = []; 
     let isAnimating = false;
 
+    // --- UPDATED POSITIONS AND WIDTHS ---
     const positions = {
-        cpu: { x: 100, y: 200, r: 60 },
-        cache: { x: 350, y: 200, w: 120, h: 160 },
-        ram: { x: 650, y: 200, w: 150, h: 250 }
+        cpu: { x: 80, y: 200, r: 60 },
+        cache: { x: 290, y: 200, w: 160, h: 160 },
+        ram: { x: 520, y: 200, w: 260, h: 250 }
     };
 
     function setButtons(disabled) {
@@ -130,16 +131,17 @@
         ctx.lineWidth = 3;
         ctx.strokeRect(positions.cache.x, positions.cache.y - positions.cache.h/2, positions.cache.w, positions.cache.h);
         
-        ctx.font = 'bold 20px Arial';
+        ctx.font = 'bold 18px Arial'; // Slightly smaller font to fit nicely
         ctx.fillStyle = '#fff';
         ctx.fillText("Cache Memory", positions.cache.x + positions.cache.w/2, positions.cache.y - 50);
         
         ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-        ctx.strokeRect(positions.cache.x + 20, positions.cache.y - 30, 80, 40); 
-        ctx.strokeRect(positions.cache.x + 20, positions.cache.y + 20, 80, 40); 
+        // Adjusted slot positions for the wider box
+        ctx.strokeRect(positions.cache.x + 40, positions.cache.y - 30, 80, 40); 
+        ctx.strokeRect(positions.cache.x + 40, positions.cache.y + 20, 80, 40); 
 
-        if (cache[0]) drawDataBlock(cache[0], positions.cache.x + 60, positions.cache.y - 10);
-        if (cache[1]) drawDataBlock(cache[1], positions.cache.x + 60, positions.cache.y + 40);
+        if (cache[0]) drawDataBlock(cache[0], positions.cache.x + 80, positions.cache.y - 10);
+        if (cache[1]) drawDataBlock(cache[1], positions.cache.x + 80, positions.cache.y + 40);
 
         // RAM
         ctx.fillStyle = '#212121';
@@ -148,7 +150,7 @@
         ctx.lineWidth = 3;
         ctx.strokeRect(positions.ram.x, positions.ram.y - positions.ram.h/2, positions.ram.w, positions.ram.h);
         ctx.fillStyle = '#9e9e9e';
-        ctx.font = 'bold 20px Arial';
+        ctx.font = 'bold 18px Arial';
         ctx.fillText("Random Access Memory", positions.ram.x + positions.ram.w/2, positions.ram.y - positions.ram.h/2 + 30);
         
         drawDataBlock('A', positions.ram.x + positions.ram.w/2, positions.ram.y - 20);
@@ -182,10 +184,10 @@
         ctx.textAlign = 'center';
         if (isHit) {
             ctx.fillStyle = '#4CAF50';
-            ctx.fillText("CACHE HIT!", canvas.width / 3, 80);
+            ctx.fillText("CACHE HIT!", canvas.width / 2, 70);
         } else {
             ctx.fillStyle = '#F44336';
-            ctx.fillText("CACHE MISS!", canvas.width / 3, 80);
+            ctx.fillText("CACHE MISS!", canvas.width / 2, 70);
         }
     }
 
@@ -216,7 +218,7 @@
             await animatePacket(cacheCenterX, cpuX, centerY, dataLabel, '#4CAF50');
             description.innerText = `Data ${dataLabel} delivered from Cache. Very fast!`;
         } else {
-            description.innerText = `CACHE MISS! Not in Cache Memory. Must walk to Random Access Memory (RAM)...`;
+            description.innerText = `CACHE MISS! Not in Cache Memory. Must go to RAM...`;
             drawStatic();
             drawHitMiss(false);
             
