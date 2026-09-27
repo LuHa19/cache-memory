@@ -134,12 +134,11 @@
         ctx.lineWidth = 3;
         ctx.strokeRect(positions.cache.x, positions.cache.y - positions.cache.h/2, positions.cache.w, positions.cache.h);
         
-        ctx.font = 'bold 18px Arial'; // Slightly smaller font to fit nicely
+        ctx.font = 'bold 18px Arial'; 
         ctx.fillStyle = '#fff';
         ctx.fillText("Cache Memory", positions.cache.x + positions.cache.w/2, positions.cache.y - 50);
         
         ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-        // Adjusted slot positions for the wider box
         ctx.strokeRect(positions.cache.x + 40, positions.cache.y - 30, 80, 40); 
         ctx.strokeRect(positions.cache.x + 40, positions.cache.y + 20, 80, 40); 
 
@@ -183,14 +182,14 @@
     }
 
     function drawHitMiss(isHit) {
-        ctx.font = 'bold 40px Arial';
+        ctx.font = 'bold 30px Arial';
         ctx.textAlign = 'center';
         if (isHit) {
             ctx.fillStyle = '#4CAF50';
-            ctx.fillText("In Cache!", canvas.width / 3, 80);
+            ctx.fillText("In Cache!", canvas.width / 2, 60);
         } else {
             ctx.fillStyle = '#F44336';
-            ctx.fillText("Missing From Cache!", canvas.width / 3, 80);
+            ctx.fillText("Missing From Cache!", canvas.width / 2, 60);
         }
     }
 
@@ -213,7 +212,7 @@
         drawStatic();
         drawHitMiss(isInCache);
         
-        // Brief pause to read "Hit" or "Miss"
+        // Brief pause to read "In Cache" or "Missing From Cache"
         await new Promise(r => setTimeout(r, 1200)); 
 
         if (isInCache) {
