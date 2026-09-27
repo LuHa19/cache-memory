@@ -132,7 +132,7 @@
         
         ctx.font = 'bold 20px Arial';
         ctx.fillStyle = '#fff';
-        ctx.fillText("Backpack", positions.cache.x + positions.cache.w/2, positions.cache.y - 50);
+        ctx.fillText("Cache Memory", positions.cache.x + positions.cache.w/2, positions.cache.y - 50);
         
         ctx.strokeStyle = 'rgba(255,255,255,0.3)';
         ctx.strokeRect(positions.cache.x + 20, positions.cache.y - 30, 80, 40); 
@@ -149,7 +149,7 @@
         ctx.strokeRect(positions.ram.x, positions.ram.y - positions.ram.h/2, positions.ram.w, positions.ram.h);
         ctx.fillStyle = '#9e9e9e';
         ctx.font = 'bold 20px Arial';
-        ctx.fillText("Locker", positions.ram.x + positions.ram.w/2, positions.ram.y - positions.ram.h/2 + 30);
+        ctx.fillText("Random Access Memory", positions.ram.x + positions.ram.w/2, positions.ram.y - positions.ram.h/2 + 30);
         
         drawDataBlock('A', positions.ram.x + positions.ram.w/2, positions.ram.y - 20);
         drawDataBlock('B', positions.ram.x + positions.ram.w/2, positions.ram.y + 40);
@@ -212,11 +212,11 @@
         await new Promise(r => setTimeout(r, 1200)); 
 
         if (isInCache) {
-            description.innerText = `CACHE HIT! Data ${dataLabel} found in backpack. Delivery is instant.`;
+            description.innerText = `CACHE HIT! Data ${dataLabel} found in Cache Memory. Delivery is instant.`;
             await animatePacket(cacheCenterX, cpuX, centerY, dataLabel, '#4CAF50');
             description.innerText = `Data ${dataLabel} delivered from Cache. Very fast!`;
         } else {
-            description.innerText = `CACHE MISS! Not in backpack. Must walk to Locker (RAM)...`;
+            description.innerText = `CACHE MISS! Not in Cache Memory. Must walk to Random Access Memory (RAM)...`;
             drawStatic();
             drawHitMiss(false);
             
